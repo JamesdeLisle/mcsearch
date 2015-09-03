@@ -9,9 +9,9 @@
 
 main()
 {
-    cd ~/Dropbox/Work/MCSearch/numerics/1DSearch-v1.0/1DSearch-v1.0/source
+    cd ~/Dropbox/Work/MCSearch/numerics/working/source
     python -B search1DImag.py
-    mv *.dat ~/Dropbox/Work/MCSearch/numerics/1DSearch-v1.0/1DSearch-v1.0/rundata
+    mv *.dat ~/Dropbox/Work/MCSearch/numerics/rundata
     cd ..
 }
 
