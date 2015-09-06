@@ -8,6 +8,29 @@ from printFunctions import *
 import sys
 import time
 from tabulate import tabulate
+import curses
+import atexit
+
+def initialiseDisplay():
+
+    stdscr = curses.initscr()
+    curses.noecho()
+    curses.cbreak()
+    
+    return stdscr
+
+def killDisplay():
+
+    curses.nocbreak()
+    curses.echo()
+    curses.endwin()
+
+def printTable(stdscr, step,step_maximum,temperature,costFunction_current):
+    
+    out = [['Step','%d/%d' %(step,step_maximum)],['Inverse Temperature','%f' % (temperature)],['Cost Function','%f' % (costFunction_current)]]
+    stdscr.addstr(0,0,tabulate(out,tablefmt='grid'))
+    stdscr.refresh()
+
 
 def linspace(pMin,pMax,pInt):
     
@@ -121,17 +144,18 @@ def renormaliseLambda(Lambda):
    
     sum_real = sum(Lambda[0][:])
     sum_imag = sum(Lambda[1][:])
-    #print(Lambda) 
+ 
     for tik1 in range(0,2):
         for tik2 in range(0,12):
             if tik1 == 0:
                 Lambda[tik1][tik2] = Lambda[tik1][tik2]/sum_real
             else:
                 Lambda[tik1][tik2] = Lambda[tik1][tik2]/sum_imag
-    #print(Lambda)
+ 
     return Lambda
 
 def monteCarloSearch():
+    
     
     #TRmatrix = array([[0,0,1,0],[0,0,0,1],[-1,0,0,0],[0,-1,0,0]])
     TRmatrix = array([[0,1,0,0],[-1,0,0,0],[0,0,0,1],[0,0,-1,0]])
@@ -168,6 +192,8 @@ def monteCarloSearch():
     step = 1
     step_maximum = pow(10,6) 
     
+    stdscr = initialiseDisplay()
+
     while step < step_maximum:
                                                                                                     
         #Lambda_current = renormaliseLambda(Lambda_current)
@@ -178,15 +204,8 @@ def monteCarloSearch():
         costFunction_move = getCostFunction(Lambda_move,TRmatrix,momentum_discretisation) 
         acceptanceProbability = min(1,exp(-temperature*(costFunction_move-costFunction_current))) 
         draw = random.random()
-        #print(Lambda_move) 
-        #out = [['Step','%d/%d' %(step,step_maximum)],['Inverse Temperature','%f' % (temperature)],['Cost Function','%f' % (costFunction_current)]]
-        #print(tabulate(out,tablefmt='fancy_grid'))
-
-        #print(' ')
-        #print(costFunction_move)
-        #print(costFunction_current) 
-        #print(acceptanceProbability)
-
+        printTable(stdscr, step,step_maximum,temperature,costFunction_current)
+        
         if draw <= acceptanceProbability:   
             Lambda_current = Lambda_move
             costFunction_current = costFunction_move
@@ -199,7 +218,8 @@ def monteCarloSearch():
             Lambda_minimum = Lambda_current
  
         step = step + 1
-        
+    
+    killDisplay()
     print('\n')
     printLambdaToConsole(Lambda_current)
     print(costFunction_current)
@@ -207,4 +227,4 @@ def monteCarloSearch():
                     TRmatrix,temperature_maximum,temperature_increment,momentum_discretisation)
 #####################################################
 monteCarloSearch()
-
+atexit.register(killDisplay)
