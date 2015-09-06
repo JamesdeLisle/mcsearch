@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from printFunctions import *
 import sys
 import time
+from tabulate import tabulate
 
 def linspace(pMin,pMax,pInt):
     
@@ -178,8 +179,8 @@ def monteCarloSearch():
         acceptanceProbability = min(1,exp(-temperature*(costFunction_move-costFunction_current))) 
         draw = random.random()
         #print(Lambda_move) 
-        sys.stdout.write('\r' + '%d/%d || %f || %f || %f || %f    ' %(step,step_maximum,temperature,costFunction_move,costFunction_current,acceptanceProbability))
-        sys.stdout.flush()
+        #out = [['Step','%d/%d' %(step,step_maximum)],['Inverse Temperature','%f' % (temperature)],['Cost Function','%f' % (costFunction_current)]]
+        #print(tabulate(out,tablefmt='fancy_grid'))
 
         #print(' ')
         #print(costFunction_move)
