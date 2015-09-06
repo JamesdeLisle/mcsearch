@@ -5,7 +5,38 @@ from math import cos,sin,exp
 import cmath as cm
 import matplotlib.pyplot as plt
 import time
+from tabulate import tabulate
+import curses
 
+def initialiseDisplay():
+
+    stdscr = curses.initscr()
+    curses.noecho()
+    curses.cbreak()
+    
+    return stdscr
+
+def killDisplay():
+
+    curses.nocbreak()
+    curses.echo()
+    curses.endwin()
+
+def printTable(stdscr, step,step_maximum,temperature,costFunction_current):
+    
+    out = [['Step','%d/%d' %(step,step_maximum)],['Inverse Temperature','%f' % (temperature)],['Cost Function','%f' % (costFunction_current)]]
+    stdscr.addstr(30,0,tabulate(out,tablefmt='grid'))
+    stdscr.refresh()
+
+def printLambdaFlags(stdscr,activeFlags):
+    
+    out = []
+    variables = ['mu0','mu1','t0','Delta0','t1','Delta1','t2','Delta2','t3','Delta3','t4','Delta4']
+
+    for tik in range(12):
+        out.append([variables[tik],activeFlags[0][tik],activeFlags[1][tik]])
+        stdscr.addstr(0,0,tabulate(out,headers=['Variable','Real','Imaginary'],tablefmt='grid'))
+        stdscr.refresh()
 
 def printLambdaToConsole(Lambda):
     

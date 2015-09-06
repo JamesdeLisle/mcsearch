@@ -28,9 +28,18 @@ def killDisplay():
 def printTable(stdscr, step,step_maximum,temperature,costFunction_current):
     
     out = [['Step','%d/%d' %(step,step_maximum)],['Inverse Temperature','%f' % (temperature)],['Cost Function','%f' % (costFunction_current)]]
-    stdscr.addstr(0,0,tabulate(out,tablefmt='grid'))
+    stdscr.addstr(30,0,tabulate(out,tablefmt='grid'))
     stdscr.refresh()
 
+def printLambdaFlags(stdscr,activeFlags):
+    
+    out = []
+    variables = ['mu0','mu1','t0','Delta0','t1','Delta1','t2','Delta2','t3','Delta3','t4','Delta4']
+
+    for tik in range(12):
+        out.append([variables[tik],activeFlags[0][tik],activeFlags[1][tik]])
+        stdscr.addstr(0,0,tabulate(out,headers=['Variable','Real','Imaginary'],tablefmt='grid'))
+        stdscr.refresh()
 
 def linspace(pMin,pMax,pInt):
     
@@ -156,7 +165,7 @@ def renormaliseLambda(Lambda):
 
 def monteCarloSearch():
     
-    
+    stdscr = initialiseDisplay()
     #TRmatrix = array([[0,0,1,0],[0,0,0,1],[-1,0,0,0],[0,-1,0,0]])
     TRmatrix = array([[0,1,0,0],[-1,0,0,0],[0,0,0,1],[0,0,-1,0]])
 
@@ -171,14 +180,12 @@ def monteCarloSearch():
             Lambda_current[0].append(random.uniform(-10.0,10.0))
             Lambda_current[1].append(random.uniform(-10.0,10.0))
 
-    for tik in range(0,12):
-        print('%f + %fi'%(Lambda_current[0][tik],Lambda_current[1][tik]))
-
     activeFlags = getActiveFlags(Lambda_current,TRmatrix,momentum_discretisation)
+    printLambdaFlags(stdscr,activeFlags)
+    #for tik in range(0,12):
+    #    print('%s, %s'%(activeFlags[0][tik],activeFlags[1][tik]))
 
-    for tik in range(0,12):
-        print('%s, %s'%(activeFlags[0][tik],activeFlags[1][tik]))
-
+    
     costFunction_current = getCostFunction(Lambda_current,TRmatrix,momentum_discretisation)  
     costFunction_minimum = costFunction_current	    
     Lambda_minimum = Lambda_current	
@@ -191,8 +198,6 @@ def monteCarloSearch():
     standardDeviation = 1.0              
     step = 1
     step_maximum = pow(10,6) 
-    
-    stdscr = initialiseDisplay()
 
     while step < step_maximum:
                                                                                                     
@@ -220,11 +225,8 @@ def monteCarloSearch():
         step = step + 1
     
     killDisplay()
-    print('\n')
-    printLambdaToConsole(Lambda_current)
-    print(costFunction_current)
     printRunToFile(costFunction_minimum,Lambda_minimum,Lambda_current,costFunction_current, \
                     TRmatrix,temperature_maximum,temperature_increment,momentum_discretisation)
 #####################################################
 monteCarloSearch()
-atexit.register(killDisplay)
+
