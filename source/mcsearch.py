@@ -8,7 +8,8 @@ def monteCarloSearch():
     
     stdscr = initialiseDisplay()
     #TRmatrix = array([[0,0,1,0],[0,0,0,1],[-1,0,0,0],[0,-1,0,0]])
-    TRmatrix = array([[0,1,0,0],[-1,0,0,0],[0,0,0,1],[0,0,-1,0]])
+    #TRmatrix = array([[0,1,0,0],[-1,0,0,0],[0,0,0,1],[0,0,-1,0]])
+    TRmatrix = array([[1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,-1]])
 
     momentum_discretisation = 50
     Lambda_current = [],[]
