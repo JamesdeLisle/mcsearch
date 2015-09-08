@@ -26,25 +26,13 @@ def printTable(stdscr, step,step_maximum,temperature,costFunction_current,costFu
     stdscr.addstr(30,0,tabulate(out,tablefmt='grid'))
     stdscr.refresh()
 
-def printLambdaFlags(stdscr,activeFlags):
+def printLambda(stdscr,_Lambda_):
     
     out = []
-    variables = ['mu0','mu1','t0','Delta0','t1','Delta1','t2','Delta2','t3','Delta3','t4','Delta4']
-
-    for tik in range(12):
-        out.append([variables[tik],activeFlags[0][tik],activeFlags[1][tik]])
-        stdscr.addstr(0,0,tabulate(out,headers=['Variable','Real','Imaginary'],tablefmt='grid'))
-        stdscr.refresh()
-
-def printLambda(stdscr,Lambda):
-    
-    out = []
-    variables = ['mu0','mu1','t0','Delta0','t1','Delta1','t2','Delta2','t3','Delta3','t4','Delta4']
-
-    for tik in range(12):
-        out.append([variables[tik],round(Lambda[0][tik],3),round(Lambda[1][tik],3)])
-        stdscr.addstr(0,0,tabulate(out,headers=['Variable','Real','Imaginary'],tablefmt='grid',stralign="center"))
-        stdscr.refresh()
+    for coeff in _Lambda_.coefficients:
+        out.append([coeff,round(_Lambda_.coefficients[coeff].real,3),round(_Lambda_.coefficients[coeff].imag,3)])
+    stdscr.addstr(0,0,tabulate(out,headers=['Variable','Real','Imaginary'],tablefmt='grid',stralign="center"))
+    stdscr.refresh()
 
 def printLambdaFinal(Lambda_current):
 

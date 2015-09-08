@@ -12,19 +12,18 @@ def linspace(pMin,pMax,pInt):
     
     return space
 
-def getCostFunction(Lambda,TRMatrix,momentum_discretisation):
-    
+def getCostFunction(coefficients,TRMatrix,momentum_discretisation):
+     
     pi = 3.14159
     momentumSpace = linspace(0,pi,momentum_discretisation)
     costFunction = 0.0      
-
+    
     for tik1 in range(0,len(momentumSpace)):
-        Ham_PlusP = getHam(Lambda,momentumSpace[tik1])
-        Ham_MinusP = getHam(Lambda,-momentumSpace[tik1])
+        Ham_PlusP = getHam(coefficients,momentumSpace[tik1])
+        Ham_MinusP = getHam(coefficients,-momentumSpace[tik1])
         A = TRMatrix.dot(conjugate(Ham_PlusP).dot(conjugate(TRMatrix).transpose())) - Ham_MinusP     
         if (costFunction < sqrt(trace(A.dot(conjugate(A).transpose()))).real): 
             costFunction = sqrt(trace(A.dot(conjugate(A).transpose()))).real    
-         
     
     return costFunction
 
@@ -46,60 +45,29 @@ def updateStandardDeviation(freqAccepted,standardDeviation):
     
     return standardDeviation_temp
 
-def getActiveFlags(Lambda_current,TRmatrix,momentum_discretisation):
-    
-    activeFlags = [],[] 
-    Lambda_test = Lambda_current 
+def checkFreeness(Lambda_current,TRmatrix,momentum_discretisation):
+  
     costFunction_compare = getCostFunction(Lambda_current,TRmatrix,momentum_discretisation)  
     costFunction_test = 0.0              
     shift = 2.51            
     
-    for tik1 in range(0,12):
-        for tik2 in range(0,2):
-            Lambda_test[tik2][tik1] = Lambda_test[tik2][tik1] + shift
-            costFunction_test = getCostFunction(Lambda_test,TRmatrix,momentum_discretisation)
-
-            if absolute(costFunction_test - costFunction_compare) > 0.0:
-                activeFlags[tik2].append(True)
-            else:
-                activeFlags[tik2].append(False)
-                                                                                                                                                    
-            Lambda_test[tik2][tik1] = Lambda_test[tik2][tik1] - shift
-
-    return activeFlags
-
-def getLambda(Lambda_current,standard_deviation,activeFlags):
-
-    Lambda_move = [],[]
-
-    for tik1 in range(0,12):
-        for tik2 in range(0,2):
-            if activeFlags[tik2][tik1]:
-                if tik1 < 2 and tik2 == 1:
-                    Lambda_move[tik2].append(0.0)	
-                else:
-                    Lambda_move[tik2].append(random.gauss(Lambda_current[tik2][tik1],standard_deviation))
-            else:
-                if tik1 < 2 and tik2 == 1:
-                    Lambda_move[tik2].append(0.0)	
-                else:
-                    Lambda_move[tik2].append(1.0)
-
-    return Lambda_move
-
-def renormaliseLambda(Lambda):
-   
-    sum_real = sum(Lambda[0][:])
-    sum_imag = sum(Lambda[1][:])
- 
-    for tik1 in range(0,2):
-        for tik2 in range(0,12):
-            if tik1 == 0:
-                Lambda[tik1][tik2] = Lambda[tik1][tik2]/sum_real
-            else:
-                Lambda[tik1][tik2] = Lambda[tik1][tik2]/sum_imag
- 
-    return Lambda
+    for coeff in Lambda_current.coefficients:
+        
+        Lambda_current.coefficients[coeff].real = Lambda_current.coefficients[coeff].real + shift
+        costFunction_test = getCostFunction(Lambda_current,TRmatrix,momentum_discretisation)
+        if costFunction_test - costFunction_compare == 0:
+            Lambda_current.coefficients[coeff].real_flag = False
+        else:
+            Lambda_current.coefficients[coeff].real = Lambda_current.coefficients[coeff].real + shift
+        
+        Lambda_current.coefficients[coeff].imag = Lambda_current.coefficients[coeff].imag + shift
+        costFunction_test = getCostFunction(Lambda_current,TRmatrix,momentum_discretisation)
+        if costFunction_test - costFunction_compare == 0:
+            Lambda_current.coefficients[coeff].imag_flag = False
+        else:
+            Lambda_current.coefficients[coeff].imag = Lambda_current.coefficients[coeff].imag + shift
+    
+    return Lambda_current 
 
 def getTemperature(temperature_minimum,temperature_maximum,step,step_maximum):
     
