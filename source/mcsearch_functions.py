@@ -45,30 +45,6 @@ def updateStandardDeviation(freqAccepted,standardDeviation):
     
     return standardDeviation_temp
 
-def checkFreeness(Lambda_current,TRmatrix,momentum_discretisation):
-  
-    costFunction_compare = getCostFunction(Lambda_current,TRmatrix,momentum_discretisation)  
-    costFunction_test = 0.0              
-    shift = 2.51            
-    
-    for coeff in Lambda_current.coefficients:
-        
-        Lambda_current.coefficients[coeff].real = Lambda_current.coefficients[coeff].real + shift
-        costFunction_test = getCostFunction(Lambda_current,TRmatrix,momentum_discretisation)
-        if costFunction_test - costFunction_compare == 0:
-            Lambda_current.coefficients[coeff].real_flag = False
-        else:
-            Lambda_current.coefficients[coeff].real = Lambda_current.coefficients[coeff].real + shift
-        
-        Lambda_current.coefficients[coeff].imag = Lambda_current.coefficients[coeff].imag + shift
-        costFunction_test = getCostFunction(Lambda_current,TRmatrix,momentum_discretisation)
-        if costFunction_test - costFunction_compare == 0:
-            Lambda_current.coefficients[coeff].imag_flag = False
-        else:
-            Lambda_current.coefficients[coeff].imag = Lambda_current.coefficients[coeff].imag + shift
-    
-    return Lambda_current 
-
 def getTemperature(temperature_minimum,temperature_maximum,step,step_maximum):
     
     return temperature_minimum * pow(temperature_maximum/temperature_minimum,(float(step)-1)/(float(step_maximum)-1))

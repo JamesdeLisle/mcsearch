@@ -18,6 +18,11 @@ class coeffContainer:
         self.imag = imag
         self.value = self.real + 1j * self.imag
 
+    def updateValue(self):
+        
+        self.value = self.real + 1j * self.imag
+
+
 def getUniformSample(flag,width):
 
     if flag:
@@ -53,23 +58,34 @@ class Lambda:
  
         costFunction_compare = getCostFunction(self.coefficients,TRmatrix,momentum_discretisation)  
         costFunction_test = 0.0              
-        shift = 2.51            
-        
+        shift = 5
+         
         for coeff in self.coefficients:
-            
             self.coefficients[coeff].real = self.coefficients[coeff].real + shift
+            self.coefficients[coeff].updateValue() 
             costFunction_test = getCostFunction(self.coefficients,TRmatrix,momentum_discretisation)
+            
             if costFunction_test - costFunction_compare == 0:
+                
                 self.coefficients[coeff].real_free_flag = 0
+                self.coefficients_move[coeff].real_free_flag = 0
+                self.coefficients[coeff].real = self.coefficients[coeff].real - shift
             else:
                 self.coefficients[coeff].real = self.coefficients[coeff].real - shift
             
+            self.coefficients[coeff].updateValue() 
             self.coefficients[coeff].imag = self.coefficients[coeff].imag + shift
+            self.coefficients[coeff].updateValue()
             costFunction_test = getCostFunction(self.coefficients,TRmatrix,momentum_discretisation)
+            
             if costFunction_test - costFunction_compare == 0:
                 self.coefficients[coeff].imag_flag = 0
+                self.coefficients_move[coeff].imag_flag = 0
+                self.coefficients[coeff].imag = self.coefficients[coeff].imag - shift
             else:
                 self.coefficients[coeff].imag = self.coefficients[coeff].imag - shift
+            
+            self.coefficients[coeff].updateValue()
 
     def generateMove(self,standard_deviation):
 
@@ -77,6 +93,8 @@ class Lambda:
             real = getGaussianSample(self.coefficients[coeff].real_flag,self.coefficients[coeff].real_free_flag,standard_deviation,self.coefficients[coeff].real)
             imag = getGaussianSample(self.coefficients[coeff].imag_flag,self.coefficients[coeff].imag_free_flag,standard_deviation,self.coefficients[coeff].imag)
             self.coefficients_move[coeff].assignValue(real,imag)
+            
+
 
     def acceptMove(self):
 
