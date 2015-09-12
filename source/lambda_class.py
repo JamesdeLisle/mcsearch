@@ -51,8 +51,10 @@ class Lambda:
             flag_imag = coefficient_names[coeff][1]
             real_free_flag = coefficient_names[coeff][2]
             imag_free_flag = coefficient_names[coeff][3]
-            self.coefficients[coeff] = coeffContainer(getUniformSample(flag_real,10.0),getUniformSample(flag_imag,10.0),flag_real,flag_imag,real_free_flag,imag_free_flag)
-            self.coefficients_move[coeff] = coeffContainer(getUniformSample(flag_real,10.0),getUniformSample(flag_imag,10.0),flag_real,flag_imag,real_free_flag,imag_free_flag)
+            self.coefficients[coeff] = coeffContainer(getUniformSample(flag_real,10.0),getUniformSample(flag_imag,10.0),\
+                    flag_real,flag_imag,real_free_flag,imag_free_flag)
+            self.coefficients_move[coeff] = coeffContainer(getUniformSample(flag_real,10.0),getUniformSample(flag_imag,10.0),\
+                    flag_real,flag_imag,real_free_flag,imag_free_flag)
     
     def findFree(self,TRmatrix,momentum_discretisation):
  
@@ -80,7 +82,7 @@ class Lambda:
             
             if costFunction_test - costFunction_compare == 0:
                 self.coefficients[coeff].imag_flag = 0
-                self.coefficients_move[coeff].imag_flag = 0
+                self.coefficients_move[coeff].imag_free_flag = 0
                 self.coefficients[coeff].imag = self.coefficients[coeff].imag - shift
             else:
                 self.coefficients[coeff].imag = self.coefficients[coeff].imag - shift

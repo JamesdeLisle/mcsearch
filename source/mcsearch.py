@@ -6,7 +6,7 @@ import random
 from lambda_class import *
 import time
 
-print_flag = 0 
+print_flag = 1
 
 def monteCarloSearch():
     
@@ -48,11 +48,11 @@ def monteCarloSearch():
         nAttempts = nAttempts + 1.0 
         standard_deviation = updateStandardDeviation(freqAccepted,standard_deviation) 
         _Lambda_.generateMove(standard_deviation)
-        for coeff in _Lambda_.coefficients:
-            print(_Lambda_.coefficients[coeff].imag_flag)
-            print(_Lambda_.coefficients_move[coeff].imag_flag)
-            print(' ')
-        print('----------')
+        #for coeff in _Lambda_.coefficients:
+        #    print(_Lambda_.coefficients[coeff].imag_flag)
+        #    print(_Lambda_.coefficients_move[coeff].imag_flag)
+        #    print(' ')
+        #print('----------')
         costFunction_move = getCostFunction(_Lambda_.coefficients_move,TRmatrix,momentum_discretisation)
         
         acceptanceProbability = -temperature*(costFunction_move-costFunction_current)
@@ -62,6 +62,10 @@ def monteCarloSearch():
             printLambda(stdscr,_Lambda_)
             printTable(stdscr, step,step_maximum,temperature,costFunction_current,costFunction_minimum)
         
+        key = stdscr.getch()
+        if key == ord('q'):
+            killDisplay()
+
         if log(draw) <= acceptanceProbability: 
             #print('hi')
             _Lambda_.acceptMove()
