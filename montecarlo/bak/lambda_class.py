@@ -1,5 +1,6 @@
 import random
 from mcsearch_functions import *
+
 class coeffContainer:
 
     def __init__(self,real,imag,flag_real,flag_imag,real_free_flag,imag_free_flag):
