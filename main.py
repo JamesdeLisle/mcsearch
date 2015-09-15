@@ -1,42 +1,37 @@
 import sys
 sys.path.insert(1,'symbolic/')
 sys.path.insert(1,'montecarlo/')
+sys.path.insert(1,'eigensystem/')
+sys.path.insert(1,'main/')
 from hamiltonian import *
 from hamiltonian_functions import *
 from general_functions import *
 from symmetry_tests import  *
 from sympy.physics.quantum import TensorProduct
 from zeta_class import *
+from parameters_class import *
+from montecarlo_main import *
 
-def generateHamiltonian(dimension,max_interaction_length,number_of_species,superconducting_flag): 
+def generateHamiltonian(_param_): 
        
-    vector_set = getListOfVectors(dimension,max_interaction_length)
+    vector_set = getListOfVectors(_param_.spatial_dimension,_param_.max_interaction_length)
     vector_symbols = getVectorSymbols(vector_set)
-    list_of_species = getSpeciesSymbols(number_of_species)
-    list_of_momenta = getMomentumSymbols(dimension) 
+    list_of_species = getSpeciesSymbols(_param_.number_of_species)
+    list_of_momenta = getMomentumSymbols(_param_.spatial_dimension) 
     display(list_of_species)
     
-    list_of_terms,list_of_coefficients = getListOfTerms(vector_set,vector_symbols,list_of_species,superconducting_flag)
+    list_of_terms,list_of_coefficients = getListOfTerms(vector_set,vector_symbols,list_of_species,_param_.superconducting_flag)
     H = hamiltonian(list_of_terms,list_of_coefficients,list_of_species)
-    #H.printReal()
-    #H.printMatrix()
-    #H.printMom()
     
-    output = ImmutableMatrix(H.returnMatrix())
-    output = output.rewrite(cos)
-    output = output.rewrite(sin)
-    #display(simplify(output))
-    display(testPH(TensorProduct(getPauli(1),eye(number_of_species)),output))
+    output = H.returnMatrix()
 
     return output,list_of_coefficients,list_of_momenta
 
-def constrainHamiltonian(hamiltonian,number_of_species,superconducting_flag):
+def constrainHamiltonian(hamiltonian,_param_):
     
     if superconducting_flag:
-        #PH_matrix = TensorProduct(eye(number_of_species),getPauli(1))
-        PH_matrix = TensorProduct(getPauli(1),eye(number_of_species))
-        #TR_matrix = TensorProduct(getPauli(3),eye(number_of_species))
-        TR_matrix = TensorProduct(eye(number_of_species),getPauli(2))
+        PH_matrix = TensorProduct(getPauli(1),eye(_param_.number_of_species))
+        TR_matrix = TensorProduct(eye(_param_.number_of_species),getPauli(2))
     else:
         #TODO implement general construction of symmetry operators
         pass
@@ -46,26 +41,43 @@ def constrainHamiltonian(hamiltonian,number_of_species,superconducting_flag):
      
     return H_PH_TR_inv
 
-def generateZeta(spatial_dimension,list_of_coefficients,list_of_momenta,hamiltonian,momentum_discretisation):
+def generateZeta(hamiltonian,list_of_coefficients,list_of_momenta,_param_):
 
     zeta_input = [] 
     for variable in list_of_coefficients:
-        if str(variable)[0] == 'm':
-            zeta_input.append([1,0,1,1])
-        else:
-            zeta_input.append([1,1,1,1])
+        if str(variable)[0] == 'm': zeta_input.append([1,0,1,1])
+        else: zeta_input.append([1,1,1,1])
     
-    _momenta_ = momentum(momentum_discretisation,spatial_dimension)
+    _momenta_ = momentum(momentum_discretisation,_param_.spatial_dimension)
     _zeta_ = zeta(zeta_input)
-    _zeta_.findRedundant(hamiltonian,list_of_coefficients,list_of_momenta,_momenta_)
+    _zeta_.findRedundant(hamiltonian,list_of_coefficients,list_of_momenta)
 
+    return _zeta_, _momenta_
 
 spatial_dimension = 1
-max_interaction_length = 3
-number_of_species = 2 
+max_interaction_length = 1
+number_of_species = 2
 superconducting_flag = True
 momentum_discretisation = 30
 
-H, list_of_coefficients,list_of_momenta = generateHamiltonian(spatial_dimension,max_interaction_length,number_of_species,superconducting_flag)
-constrainHamiltonian(H,number_of_species,superconducting_flag)
-generateZeta(spatial_dimension,list_of_coefficients,list_of_momenta,H,momentum_discretisation)
+_param_ = parameters(spatial_dimension,max_interaction_length,number_of_species,superconducting_flag,momentum_discretisation)
+
+_H_, list_of_coefficients,list_of_momenta = generateHamiltonian(_param_)
+_H_inv_ = constrainHamiltonian(_H_,_param_)
+
+_ham_num_ = numericalhamiltonian(_H_inv_,list_of_coefficients,list_of_momenta)
+_zeta_, _momenta_ = generateZeta(_ham_num_,list_of_coefficients,list_of_momenta,_param_)
+
+temperature_minimum = 1
+temperature_maximum = pow(10,4)
+step_maximum = pow(10,4)
+standard_deviation_maximum = 0.1
+
+_mc_ = montecarlo(_ham_num_, _zeta_, _momenta_,temperature_minimum,temperature_maximum,step_maximum,standard_deviation_maximum)
+_mc_.doSearch()
+
+
+
+
+
+

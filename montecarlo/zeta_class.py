@@ -1,6 +1,12 @@
+import sys
+#sys.path.insert(1,'../eigensystem/')
+from eigensystem_functions import *
+from numerical_class import *
 import random
 from sympy import *
 import numpy as np
+import math
+import copy
 
 def linspace(pMin,pMax,pInt):
     
@@ -44,7 +50,7 @@ def getUniformSample(flag,width):
 def getGaussianSample(flag,free_flag,standard_deviation,current_value):
     
     if free_flag:
-        if flag:
+        if flag: 
             return random.gauss(current_value,standard_deviation)
         else:
             return 0.0
@@ -74,20 +80,30 @@ class zeta:
 
         return [ coeff.value for coeff in self.coefficients_move ]
 
-    def findRedundant(self,hamiltonian,list_of_coefficients,list_of_momenta,_momentum_):
+    def findRedundant(self,_ham_num_,list_of_coefficients,list_of_momenta):
         
-        coeff = list_of_coefficients + list_of_momenta
-        num_ham = lambdify(coeff,hamiltonian,"numpy")
-        ham_input = self.returnCurrentValues() + _momentum_.getRandom()
-        base_evals, base_evec = np.linalg.eig(num_ham(*ham_input))
-        print(base_evals,base_evec)
+        _momentum_example_ = [ 1 for tik in range(len(list_of_momenta)) ]       
+        ham_input_base = self.returnCurrentValues() + _momentum_example_
+        base_evals, base_evecs = _ham_num_.calculateEigensystem(ham_input_base)    
+        
+        shift = 1.123
+
+        for tik in range(len(list_of_coefficients)):
+            ham_input_shift = copy.copy(ham_input_base)
+            ham_input_shift[tik] = ham_input_shift[tik] + shift
+            shift_evals, shift_evecs = _ham_num_.calculateEigensystem(ham_input_shift) 
+            if sum([abs(a-b) for a,b in zip(base_evals,shift_evals)]) == 0: self.coefficients[tik].real_free_flag = 0
+            ham_input_shift = copy.copy(ham_input_base)
+            ham_input_shift[tik] = ham_input_shift[tik] + 1j * shift
+            shift_evals, shift_evecs = _ham_num_.calculateEigensystem(ham_input_shift) 
+            if sum([abs(a-b) for a,b in zip(base_evals,shift_evals)]) == 0: self.coefficients[tik].imag_free_flag = 0 
 
     def generateMove(self,standard_deviation):
-
+    
         for coeff in self.coefficients_move: 
-            real = getGaussianSample(self.coefficients[coeff].real_flag,self.coefficients[coeff].real_free_flag,standard_deviation,self.coefficients[coeff].real)
-            imag = getGaussianSample(self.coefficients[coeff].imag_flag,self.coefficients[coeff].imag_free_flag,standard_deviation,self.coefficients[coeff].imag)
-            self.coefficients_move[coeff].assignValue(real,imag)
+            real = getGaussianSample(coeff.real_flag,coeff.real_free_flag,standard_deviation,coeff.real)
+            imag = getGaussianSample(coeff.imag_flag,coeff.imag_free_flag,standard_deviation,coeff.imag)
+            coeff.assignValue(real,imag)
             
     def acceptMove(self):
 
@@ -109,3 +125,10 @@ class momentum:
             self.momentum[tik] = self.space[random.randrange(0,self.discretisation-1)]
 
         return self.momentum
+
+    def getListOfMomenta(self):
+
+        if self.dimension == 1: return [[value] for value in self.space]
+        elif self.dimension == 2: return [[value1,value2] for value1 in self.space for value2 in self.space ]
+        elif self.dimension == 3: return [[value1,value2,value3] for value1 in self.space for value2 in self.space for value3 in self.space ]
+
