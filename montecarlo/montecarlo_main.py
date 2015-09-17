@@ -9,12 +9,12 @@ class montecarlo:
 
         self._ham_num_ = copy.deepcopy(_ham_num_)
         self._zeta_ = copy.deepcopy(_zeta_)
-        self._momenta_ = copy.deepcopy(_momenta_)
+        self.momentum_values = _momenta_.getListOfMomenta()
         self.temperature_minimum = temperature_minimum
         self.temperature_maximum = temperature_maximum
         self.step_maximum = step_maximum
-        self.nAccepted = 0.0
-        self.nAttempts = 0.0
+        self.nAccepted = 1.0
+        self.nAttempts = 1.0
         self.freqAccepted = 0.0
         self.step = 1
         self.temperature = 0.0
@@ -34,16 +34,24 @@ class montecarlo:
 
         freq_accepted_ideal = 0.5
         scaling_factor = abs(self.freqAccepted - freq_accepted_ideal)
-        if self.freqAccepted > freq_accepted_ideal: self.standard_deviation = self.standard_deviation/scaling_factor
-        else: self.standard_deviation = self.standard_deviation*scaling_factor
-        if self.standard_deviation < 1e-14: self.standard_deviation = 1e-14
-        elif self.standard_deviation > self.standard_deviation_maximum: self.standard_deviation = self.standard_deviation_maximum
+        if self.freqAccepted > freq_accepted_ideal: 
+            self.standard_deviation = self.standard_deviation/scaling_factor
+        else: 
+            self.standard_deviation = self.standard_deviation*scaling_factor
+        if self.standard_deviation < 1e-14: 
+            self.standard_deviation = 1e-14
+        elif self.standard_deviation > self.standard_deviation_maximum: 
+            self.standard_deviation = self.standard_deviation_maximum
 
     def updateInternals(self,accepted_flag):
 
         self.nAttempts += 1
-        if accepted_flag: self.nAccepted += 1; self.cost_function_current = self.cost_function_proposed; self._zeta_.acceptMove()
-        if self.cost_function_current < self.cost_function_minimum: self.cost_function_minimum = self.cost_function_current
+        if accepted_flag: 
+            self.nAccepted += 1; 
+            self.cost_function_current = self.cost_function_proposed; 
+            self._zeta_.acceptMove()
+        if self.cost_function_current < self.cost_function_minimum: 
+            self.cost_function_minimum = self.cost_function_current
         self.freqAccepted = self.nAccepted/self.nAttempts
         self.step += 1
 
@@ -57,12 +65,14 @@ class montecarlo:
             self.updateTemperature()
             self.updateStandardDeviation()
             self._zeta_.generateMove(self.standard_deviation)
+            #print(self.standard_deviation)
+            #print([a-b for a,b in zip(self._zeta_.returnProposedValues(),self._zeta_.returnCurrentValues())])
             self.getCostFunction()
             self.updateAcceptanceProbability()
             if np.log(random.random()) <= self.acceptance_probability: accepted_flag = True
             self.updateInternals(accepted_flag)
-            print(self.step)
-
+            print(self.freqAccepted,self.standard_deviation)
+            #print([(a.real_free_flag,a.imag_free_flag) for a in self._zeta_.coefficients])
 
     def updateAcceptanceProbability(self):
 
@@ -70,14 +80,17 @@ class montecarlo:
 
     def getCostFunction(self,initial_flag=False):
 
-        momentum_values = self._momenta_.getListOfMomenta()
-        if initial_flag: coefficient_values = self._zeta_.returnCurrentValues()
-        else: coefficient_values = self._zeta_.returnProposedValues()
+        if initial_flag: 
+            coefficient_values = self._zeta_.returnCurrentValues()
+        else: 
+            coefficient_values = self._zeta_.returnProposedValues()
         
-        for momentum_value in momentum_values:
-            evals, evecs = self._ham_num_.calculateEigensystem(coefficient_values + momentum_value)
+        gap = pow(10,5)
+        for momentum_value in self.momentum_values:
+            evals = self._ham_num_.calculateEigenvalues(coefficient_values + momentum_value)
+            if evals[2]-evals[1] < gap: gap = evals[2]-evals[1]
 
-        if initial_flag: self.cost_function_current = 1
-        else: self.cost_function_proposed = 1
+        if initial_flag:    self.cost_function_current = np.real(gap)
+        else:               self.cost_function_proposed = np.real(gap)
 
             

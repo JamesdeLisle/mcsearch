@@ -1,5 +1,5 @@
 from sympy import *
-import numpy
+import scipy.linalg as LA
 from eigensystem_functions import *
 
 class numericalhamiltonian:
@@ -11,10 +11,10 @@ class numericalhamiltonian:
         self.lost_of_momenta = list_of_momenta
         self.hamiltonian = lambdify(list_of_coefficients + list_of_momenta,hamiltonian,"numpy")
 
-    def calculateEigensystem(self,list_of_values):
+    def calculateEigenvalues(self,list_of_values):
         
-        evals, evec = numpy.linalg.eig(self.hamiltonian(*list_of_values))
-        evals_sort, evec_sort = sortEigensystem(evals,evec)
+        evals = LA.eigvals(self.hamiltonian(*list_of_values))
+        evals_sort = sortEigensystem(evals)
 
-        return evals_sort, evec_sort
+        return evals_sort
         

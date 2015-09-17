@@ -70,7 +70,7 @@ _zeta_, _momenta_ = generateZeta(_ham_num_,list_of_coefficients,list_of_momenta,
 
 temperature_minimum = 1
 temperature_maximum = pow(10,4)
-step_maximum = pow(10,4)
+step_maximum = pow(10,5)
 standard_deviation_maximum = 0.1
 
 _mc_ = montecarlo(_ham_num_, _zeta_, _momenta_,temperature_minimum,temperature_maximum,step_maximum,standard_deviation_maximum)

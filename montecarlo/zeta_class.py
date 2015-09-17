@@ -84,30 +84,35 @@ class zeta:
         
         _momentum_example_ = [ 1 for tik in range(len(list_of_momenta)) ]       
         ham_input_base = self.returnCurrentValues() + _momentum_example_
-        base_evals, base_evecs = _ham_num_.calculateEigensystem(ham_input_base)    
+        base_evals = _ham_num_.calculateEigenvalues(ham_input_base)    
         
         shift = 1.123
 
         for tik in range(len(list_of_coefficients)):
             ham_input_shift = copy.copy(ham_input_base)
             ham_input_shift[tik] = ham_input_shift[tik] + shift
-            shift_evals, shift_evecs = _ham_num_.calculateEigensystem(ham_input_shift) 
+            shift_evals = _ham_num_.calculateEigenvalues(ham_input_shift) 
             if sum([abs(a-b) for a,b in zip(base_evals,shift_evals)]) == 0: self.coefficients[tik].real_free_flag = 0
             ham_input_shift = copy.copy(ham_input_base)
             ham_input_shift[tik] = ham_input_shift[tik] + 1j * shift
-            shift_evals, shift_evecs = _ham_num_.calculateEigensystem(ham_input_shift) 
+            shift_evals = _ham_num_.calculateEigenvalues(ham_input_shift) 
             if sum([abs(a-b) for a,b in zip(base_evals,shift_evals)]) == 0: self.coefficients[tik].imag_free_flag = 0 
 
     def generateMove(self,standard_deviation):
-    
+        
+        count = 0
+
         for coeff in self.coefficients_move: 
+            
             real = getGaussianSample(coeff.real_flag,coeff.real_free_flag,standard_deviation,coeff.real)
             imag = getGaussianSample(coeff.imag_flag,coeff.imag_free_flag,standard_deviation,coeff.imag)
+            if count == 6: print(real,coeff.real,coeff.real_free_flag)
             coeff.assignValue(real,imag)
+            count += 1
             
     def acceptMove(self):
 
-        self.coefficients = self.coefficients_move
+        self.coefficients = copy.deepcopy(self.coefficients_move)
 
 class momentum:
 
@@ -120,9 +125,6 @@ class momentum:
         self.discretisation = discretisation
 
     def getRandom(self):
-        
-        for tik in range(self.dimension):
-            self.momentum[tik] = self.space[random.randrange(0,self.discretisation-1)]
 
         return self.momentum
 
