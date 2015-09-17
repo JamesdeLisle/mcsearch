@@ -37,6 +37,7 @@ class montecarlo:
         if self.freqAccepted > freq_accepted_ideal: 
             self.standard_deviation = self.standard_deviation/scaling_factor
         else: 
+            print(scaling_factor)
             self.standard_deviation = self.standard_deviation*scaling_factor
         if self.standard_deviation < 1e-14: 
             self.standard_deviation = 1e-14
@@ -72,6 +73,7 @@ class montecarlo:
             if np.log(random.random()) <= self.acceptance_probability: accepted_flag = True
             self.updateInternals(accepted_flag)
             print(self.freqAccepted,self.standard_deviation)
+            print(self.cost_function_current,self.cost_function_proposed)
             #print([(a.real_free_flag,a.imag_free_flag) for a in self._zeta_.coefficients])
 
     def updateAcceptanceProbability(self):
