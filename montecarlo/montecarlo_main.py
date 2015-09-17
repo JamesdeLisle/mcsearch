@@ -37,7 +37,6 @@ class montecarlo:
         if self.freqAccepted > freq_accepted_ideal: 
             self.standard_deviation = self.standard_deviation/scaling_factor
         else: 
-            print(scaling_factor)
             self.standard_deviation = self.standard_deviation*scaling_factor
         if self.standard_deviation < 1e-14: 
             self.standard_deviation = 1e-14
@@ -59,23 +58,20 @@ class montecarlo:
     def doSearch(self):
 
         self.getCostFunction(True) 
-         
+        test = self.cost_function_current 
         while  self.step < self.step_maximum:
             
             accepted_flag = False
             self.updateTemperature()
             self.updateStandardDeviation()
             self._zeta_.generateMove(self.standard_deviation)
-            #print(self.standard_deviation)
-            #print([a-b for a,b in zip(self._zeta_.returnProposedValues(),self._zeta_.returnCurrentValues())])
             self.getCostFunction()
             self.updateAcceptanceProbability()
             if np.log(random.random()) <= self.acceptance_probability: accepted_flag = True
             self.updateInternals(accepted_flag)
             print(self.freqAccepted,self.standard_deviation)
             print(self.cost_function_current,self.cost_function_proposed)
-            #print([(a.real_free_flag,a.imag_free_flag) for a in self._zeta_.coefficients])
-
+            
     def updateAcceptanceProbability(self):
 
         self.acceptance_probability = -self.temperature * (self.cost_function_proposed - self.cost_function_current)
@@ -90,7 +86,7 @@ class montecarlo:
         gap = pow(10,5)
         for momentum_value in self.momentum_values:
             evals = self._ham_num_.calculateEigenvalues(coefficient_values + momentum_value)
-            if evals[2]-evals[1] < gap: gap = evals[2]-evals[1]
+            if abs(evals[len(evals)/2]) < gap: gap =  abs(evals[len(evals)/2])
 
         if initial_flag:    self.cost_function_current = np.real(gap)
         else:               self.cost_function_proposed = np.real(gap)

@@ -48,7 +48,7 @@ def getUniformSample(flag,width):
         return 0.0
    
 def getGaussianSample(flag,free_flag,standard_deviation,current_value):
-    
+   
     if free_flag:
         if flag: 
             return random.gauss(current_value,standard_deviation)
@@ -100,15 +100,11 @@ class zeta:
 
     def generateMove(self,standard_deviation):
         
-        count = 0
-
-        for coeff in self.coefficients_move: 
+        for coeff_p, coeff_c in zip(self.coefficients_move,self.coefficients): 
             
-            real = getGaussianSample(coeff.real_flag,coeff.real_free_flag,standard_deviation,coeff.real)
-            imag = getGaussianSample(coeff.imag_flag,coeff.imag_free_flag,standard_deviation,coeff.imag)
-            if count == 6: print(real,coeff.real,coeff.real_free_flag)
-            coeff.assignValue(real,imag)
-            count += 1
+            real = getGaussianSample(coeff_c.real_flag,coeff_c.real_free_flag,standard_deviation,coeff_c.real)
+            imag = getGaussianSample(coeff_c.imag_flag,coeff_c.imag_free_flag,standard_deviation,coeff_c.imag)
+            coeff_p.assignValue(real,imag)
             
     def acceptMove(self):
 
