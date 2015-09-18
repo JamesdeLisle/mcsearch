@@ -1,0 +1,4 @@
+#!/bin/bash
+
+python -B main.py
+mv *.txt run_data/

@@ -1,9 +1,9 @@
-
 import copy
 import random
 import numpy as np
 from printing import *
 from tabulate import tabulate
+import time
 
 class montecarlo:
 
@@ -54,6 +54,7 @@ class montecarlo:
             self._zeta_.acceptMove()
         if self.cost_function_current < self.cost_function_minimum: 
             self.cost_function_minimum = self.cost_function_current
+            self._zeta_minimum = copy.deepcopy(self._zeta_)
         self.freqAccepted = self.nAccepted/self.nAttempts
         self.step += 1
 
@@ -71,7 +72,8 @@ class montecarlo:
             self.updateAcceptanceProbability()
             if np.log(random.random()) <= self.acceptance_probability: accepted_flag = True
             self.updateInternals(accepted_flag)
-            self.printState(stdscr)
+            self.printState(stdscr,self._ham_num_.list_of_coefficients)
+        self.printState(stdscr,self._ham_num_.list_of_coefficients,True)
         killDisplay()
 
     def updateAcceptanceProbability(self):
@@ -94,23 +96,37 @@ class montecarlo:
         else:               self.cost_function_proposed = np.real(gap)
 
             
-    def printState(self,stdscr):
-
-        table = []
+    def printState(self,stdscr,list_of_coefficients,end_flag=False):
         
-        table.append(['step','%d/%d'%(int(self.step),int(self.step_maximum))])
-        table.append(['temperature', '{0:.2f}'.format(self.temperature,self.temperature_maximum)])
-        table.append(['cost function (current)','%f'%(self.cost_function_current)])
-        table.append(['const funcion (minimum)','%f'%(self.cost_function_minimum)]) 
-
-        out = tabulate(table,tablefmt='grid')
-        stdscr.addstr(0,0,out)
-        stdscr.refresh()
-        
-        table = []
-        for coeff in self._zeta_.coefficients:
-            table.append([coeff.real,coeff.imag])
+        tables = [[],[],[]] 
+        tables[0].append(['step','%d/%d'%(int(self.step),int(self.step_maximum))])
+        tables[0].append(['temperature', '{0:.2f}'.format(self.temperature,self.temperature_maximum)])
+        tables[0].append(['cost function (current)','%f'%(self.cost_function_current)])
+        tables[0].append(['const funcion (minimum)','%f'%(self.cost_function_minimum)])  
          
-        out = tabulate(table,tablefmt='grid')
-        stdscr.addstr(30,0,out)
-        stdscr.refresh()
+        for coeff,coeffval in zip(list_of_coefficients,self._zeta_.coefficients):
+            tables[1].append([str(coeff),coeffval.real,coeffval.imag])
+                  
+        for coeff,coeffval in zip(list_of_coefficients,self._zeta_minimum.coefficients):
+            tables[2].append([str(coeff),coeffval.real,coeffval.imag])
+       
+        headers = [[' ',' '],\
+                ['Coefficient','  Current  ','  Current  '],\
+                ['Coefficient','  Minimum  ','  Minimum  ']]
+
+        if not end_flag:
+            
+            positions = [(0,0),(12,0),(40,0)]
+            
+            for table,headers,position in zip(tables,headers,positions):
+                stdscr.addstr(position[0],position[1],tabulate(table,headers=headers,tablefmt='grid'))
+                stdscr.refresh()
+        else:
+            f = open(time.strftime('%d-%m-%y')+' '+time.strftime('%H:%M')+'.txt','a')
+            for table,headers in zip(tables,headers): 
+                f.write(tabulate(table,headers=headers,tablefmt='grid'))
+                f.write('\n\n')
+
+            f.close()
+
+
