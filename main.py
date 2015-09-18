@@ -3,6 +3,7 @@ sys.path.insert(1,'symbolic/')
 sys.path.insert(1,'montecarlo/')
 sys.path.insert(1,'eigensystem/')
 sys.path.insert(1,'main/')
+sys.path.insert(1,'print/')
 from hamiltonian import *
 from hamiltonian_functions import *
 from general_functions import *
@@ -27,7 +28,7 @@ def generateHamiltonian(_param_):
 
     return output,list_of_coefficients,list_of_momenta
 
-def constrainHamiltonian(hamiltonian,_param_):
+def constrainHamiltonian(hamiltonian,_param_,superconducting_flag):
     
     if superconducting_flag:
         PH_matrix = TensorProduct(getPauli(1),eye(_param_.number_of_species))
@@ -48,35 +49,51 @@ def generateZeta(hamiltonian,list_of_coefficients,list_of_momenta,_param_):
         if str(variable)[0] == 'm': zeta_input.append([1,0,1,1])
         else: zeta_input.append([1,1,1,1])
     
-    _momenta_ = momentum(momentum_discretisation,_param_.spatial_dimension)
+    _momenta_ = momentum(_param_.momentum_discretisation,_param_.spatial_dimension)
     _zeta_ = zeta(zeta_input)
     _zeta_.findRedundant(hamiltonian,list_of_coefficients,list_of_momenta)
-
+    
     return _zeta_, _momenta_
 
-spatial_dimension = 1
-max_interaction_length = 1
-number_of_species = 2
-superconducting_flag = True
-momentum_discretisation = 30
+def main():
 
-_param_ = parameters(spatial_dimension,max_interaction_length,number_of_species,superconducting_flag,momentum_discretisation)
-
-_H_, list_of_coefficients,list_of_momenta = generateHamiltonian(_param_)
-_H_inv_ = constrainHamiltonian(_H_,_param_)
-
-_ham_num_ = numericalhamiltonian(_H_inv_,list_of_coefficients,list_of_momenta)
-_zeta_, _momenta_ = generateZeta(_ham_num_,list_of_coefficients,list_of_momenta,_param_)
-
-temperature_minimum = 1
-temperature_maximum = pow(10,4)
-step_maximum = pow(10,5)
-standard_deviation_maximum = 0.1
-
-_mc_ = montecarlo(_ham_num_, _zeta_, _momenta_,temperature_minimum,temperature_maximum,step_maximum,standard_deviation_maximum)
-_mc_.doSearch()
+    #----------------------------------------------------------------#
+    # configure initialisation variables
+    spatial_dimension = 1
+    max_interaction_length = 1
+    number_of_species = 2
+    superconducting_flag = True
+    momentum_discretisation = 30
+    _param_ = parameters(spatial_dimension,max_interaction_length,number_of_species,superconducting_flag,momentum_discretisation)
+    #----------------------------------------------------------------#
 
 
+    #----------------------------------------------------------------#
+    # generate and restrict symbolic hamiltonian
+    _H_, list_of_coefficients,list_of_momenta = generateHamiltonian(_param_)
+    _H_inv_ = constrainHamiltonian(_H_,_param_,superconducting_flag)
+    #----------------------------------------------------------------#
+
+
+    #----------------------------------------------------------------#
+    # generate numerical hamiltonian
+    _ham_num_ = numericalhamiltonian(_H_inv_,list_of_coefficients,list_of_momenta)
+    _zeta_, _momenta_ = generateZeta(_ham_num_,list_of_coefficients,list_of_momenta,_param_)
+    #----------------------------------------------------------------#
+
+
+    #----------------------------------------------------------------#
+    # confugure and run montecarlo search
+    temperature_minimum = 1
+    temperature_maximum = pow(10,5)
+    step_maximum = pow(10,4)
+    standard_deviation_maximum = 0.1
+
+    _mc_ = montecarlo(_ham_num_, _zeta_, _momenta_,temperature_minimum,temperature_maximum,step_maximum,standard_deviation_maximum)
+    _mc_.doSearch()
+    #----------------------------------------------------------------#
+
+main()
 
 
 

@@ -2,6 +2,8 @@
 import copy
 import random
 import numpy as np
+from printing import *
+from tabulate import tabulate
 
 class montecarlo:
 
@@ -56,11 +58,11 @@ class montecarlo:
         self.step += 1
 
     def doSearch(self):
-
+    
+        stdscr = initialiseDisplay() 
         self.getCostFunction(True) 
         test = self.cost_function_current 
-        while  self.step < self.step_maximum:
-            
+        while  self.step < self.step_maximum:    
             accepted_flag = False
             self.updateTemperature()
             self.updateStandardDeviation()
@@ -69,9 +71,9 @@ class montecarlo:
             self.updateAcceptanceProbability()
             if np.log(random.random()) <= self.acceptance_probability: accepted_flag = True
             self.updateInternals(accepted_flag)
-            print(self.freqAccepted,self.standard_deviation)
-            print(self.cost_function_current,self.cost_function_proposed)
-            
+            self.printState(stdscr)
+        killDisplay()
+
     def updateAcceptanceProbability(self):
 
         self.acceptance_probability = -self.temperature * (self.cost_function_proposed - self.cost_function_current)
@@ -92,3 +94,23 @@ class montecarlo:
         else:               self.cost_function_proposed = np.real(gap)
 
             
+    def printState(self,stdscr):
+
+        table = []
+        
+        table.append(['step','%d/%d'%(int(self.step),int(self.step_maximum))])
+        table.append(['temperature', '{0:.2f}'.format(self.temperature,self.temperature_maximum)])
+        table.append(['cost function (current)','%f'%(self.cost_function_current)])
+        table.append(['const funcion (minimum)','%f'%(self.cost_function_minimum)]) 
+
+        out = tabulate(table,tablefmt='grid')
+        stdscr.addstr(0,0,out)
+        stdscr.refresh()
+        
+        table = []
+        for coeff in self._zeta_.coefficients:
+            table.append([coeff.real,coeff.imag])
+         
+        out = tabulate(table,tablefmt='grid')
+        stdscr.addstr(30,0,out)
+        stdscr.refresh()
