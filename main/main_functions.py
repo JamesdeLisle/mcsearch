@@ -18,9 +18,9 @@ def generateHamiltonian(_param_):
 
     return output,list_of_coefficients,list_of_momenta
 
-def constrainHamiltonian(hamiltonian,_param_,superconducting_flag):
+def constrainHamiltonian(hamiltonian,_param_):
     
-    if superconducting_flag:
+    if _param_.superconducting_flag:
         PH_matrix = TensorProduct(getPauli(1),eye(_param_.number_of_species))
         TR_matrix = TensorProduct(eye(_param_.number_of_species),getPauli(2))
     else:

@@ -24,7 +24,7 @@ def main():
     #----------------------------------------------------------------#
     # generate and restrict symbolic hamiltonian
     _H_, list_of_coefficients,list_of_momenta = generateHamiltonian(_param_)
-    _H_inv_ = constrainHamiltonian(_H_,_param_,superconducting_flag)
+    _H_inv_ = constrainHamiltonian(_H_,_param_)
     #----------------------------------------------------------------#
 
 
@@ -38,15 +38,13 @@ def main():
     #----------------------------------------------------------------#
     # confugure and run montecarlo search
     temperature_minimum = 1
-    temperature_maximum = pow(10,5)
-    step_maximum = pow(10,2)
+    temperature_maximum = pow(10,6)
+    step_maximum = pow(10,4)
     standard_deviation_maximum = 0.1
 
     _mc_ = montecarlo(_ham_num_, _zeta_, _momenta_,temperature_minimum,temperature_maximum,step_maximum,standard_deviation_maximum)
     _mc_.doSearch()
     #----------------------------------------------------------------#
-
-
 
 main()
 
