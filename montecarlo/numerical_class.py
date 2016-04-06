@@ -1,5 +1,6 @@
 from sympy import *
 import scipy.linalg as LA
+import numpy as np
 from eigensystem_functions import *
 
 class numericalhamiltonian:
@@ -13,8 +14,19 @@ class numericalhamiltonian:
 
     def calculateEigenvalues(self,list_of_values):
         
-        evals = LA.eigvals(self.hamiltonian(*list_of_values))
-        evals_sort = sortEigensystem(evals)
+        evals, evecs = LA.eig(self.hamiltonian(*list_of_values))
+        evals = [ np.real(entry).item(0) for entry in evals]
+        track = [ i for i in range(0,len(evals))]
+        evals_sorted = sorted(evals)
+        evecs_sorted = []
 
-        return evals_sort
+        for index,entry in enumerate(evals):
+            for sorted_index,sorted_entry in enumerate(evals_sorted):
+                if entry == sorted_entry:
+                    track[index] = sorted_index
+        
+        for entry in track:
+            evecs_sorted.append(evecs[entry])
+
+        return evals_sorted, evecs_sorted
         

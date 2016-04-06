@@ -3,6 +3,7 @@ import random
 import numpy as np
 from printing import *
 from tabulate import tabulate
+from cost_functions import *
 import time
 
 class montecarlo:
@@ -27,6 +28,8 @@ class montecarlo:
         self.cost_function_minimum = pow(10,4)
         self._zeta_minimum = copy.deepcopy(self._zeta_)
         self.acceptance_probability = 0.0
+        self.berry = 0.0
+        self.gap = 0.0
 
     def updateTemperature(self):
 
@@ -63,6 +66,7 @@ class montecarlo:
         stdscr = initialiseDisplay() 
         self.getCostFunction(True) 
         test = self.cost_function_current 
+        f = open('berry.txt','w')
         while  self.step < self.step_maximum:    
             accepted_flag = False
             self.updateTemperature()
@@ -73,7 +77,9 @@ class montecarlo:
             if np.log(random.random()) <= self.acceptance_probability: accepted_flag = True
             self.updateInternals(accepted_flag)
             self.printState(stdscr,self._ham_num_.list_of_coefficients)
+            f.write('%f %f\n' % (self.berry,self.gap))
         self.printState(stdscr,self._ham_num_.list_of_coefficients,True)
+        f.close()
         killDisplay()
 
     def updateAcceptanceProbability(self):
@@ -87,13 +93,18 @@ class montecarlo:
         else: 
             coefficient_values = self._zeta_.returnProposedValues()
         
-        gap = pow(10,5)
-        for momentum_value in self.momentum_values:
-            evals = self._ham_num_.calculateEigenvalues(coefficient_values + momentum_value)
-            if abs(evals[len(evals)/2]) < gap: gap =  abs(evals[len(evals)/2])
+        self.gap = pow(10,5)
+        eSys = []
 
-        if initial_flag:    self.cost_function_current = np.real(gap)
-        else:               self.cost_function_proposed = np.real(gap)
+        for index,momentum_value in enumerate(self.momentum_values):
+            eSys.append(self._ham_num_.calculateEigenvalues(coefficient_values + momentum_value))
+            if abs(eSys[index][0][len(eSys[index][0][:])/2]) < self.gap: self.gap = (eSys[index][0][len(eSys[index][0][:])/2])
+        
+        
+        self.berry = calculateBerryPhase(eSys)
+
+        if initial_flag:    self.cost_function_current = np.abs(1-self.berry)
+        else:               self.cost_function_proposed = np.abs(1-self.berry)
 
             
     def printState(self,stdscr,list_of_coefficients,end_flag=False):
@@ -102,7 +113,8 @@ class montecarlo:
         tables[0].append(['step','%d/%d'%(int(self.step),int(self.step_maximum))])
         tables[0].append(['temperature', '{0:.2f}'.format(self.temperature,self.temperature_maximum)])
         tables[0].append(['cost function (current)','%f'%(self.cost_function_current)])
-        tables[0].append(['const funcion (minimum)','%f'%(self.cost_function_minimum)])  
+        tables[0].append(['const funcion (minimum)','%f'%(self.cost_function_minimum)]) 
+        tables[0].append(['berry','%f'%(self.berry)])
          
         for coeff,coeffval in zip(list_of_coefficients,self._zeta_.coefficients):
             tables[1].append([str(coeff),coeffval.real,coeffval.imag])
@@ -117,10 +129,12 @@ class montecarlo:
         if not end_flag:
             
             positions = [(0,0),(12,0),(40,0)]
-            
-            for table,headers,position in zip(tables,headers,positions):
-                stdscr.addstr(position[0],position[1],tabulate(table,headers=headers,tablefmt='grid'))
-                stdscr.refresh()
+            stdscr.addstr(positions[0][0],positions[0][1],tabulate(tables[0],headers=headers[0],tablefmt='grid'))
+            stdscr.refresh()
+
+            #for table,headers,position in zip(tables,headers,positions):
+            #    stdscr.addstr(position[0],position[1],tabulate(table,headers=headers,tablefmt='grid'))
+            #    stdscr.refresh()
         else:
             f = open(time.strftime('%d-%m-%y')+' '+time.strftime('%H:%M')+'.txt','a')
             for table,headers in zip(tables,headers): 
@@ -128,5 +142,4 @@ class montecarlo:
                 f.write('\n\n')
 
             f.close()
-
-
+            

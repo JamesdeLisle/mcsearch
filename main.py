@@ -13,10 +13,10 @@ def main():
     #----------------------------------------------------------------#
     # configure initialisation variables
     spatial_dimension = 1
-    max_interaction_length = 1
+    max_interaction_length = 2
     number_of_species = 2
     superconducting_flag = True
-    momentum_discretisation = 30
+    momentum_discretisation = 100
     _param_ = parameters(spatial_dimension,max_interaction_length,number_of_species,superconducting_flag,momentum_discretisation)
     #----------------------------------------------------------------#
 
